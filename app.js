@@ -2,6 +2,16 @@
 const editor = document.getElementById("prompt");
 const API_BASE = "https://tutor-production-679f.up.railway.app";
 const promptEl = document.getElementById("prompt");
+const promptEl = document.getElementById("prompt");
+
+// 배율 (0.5 = 절반 속도, 2 = 두 배 속도)
+const SCROLL_MULTIPLIER = 0.4;
+
+promptEl.addEventListener("wheel", (e) => {
+  e.preventDefault();
+
+  promptEl.scrollTop += e.deltaY * SCROLL_MULTIPLIER;
+}, { passive: false });
 
 document.addEventListener("keydown", (e) => {
   // Alt + D → 프롬프트 내용 삭제
