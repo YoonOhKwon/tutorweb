@@ -6,27 +6,27 @@ body {
   margin: 0;
   padding: 24px;
   background: #ffffff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+               "Liberation Mono", "Courier New", monospace;
   font-size: 16px;
   line-height: 1.6;
 }
 
-
+/* 프롬프트 영역 */
 #prompt {
-  min-height: calc(100vh - 48px);
+  height: calc(100vh - 48px);  /* padding 고려 */
+  overflow-y: auto;
+  overflow-x: hidden;
+
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
 
-  height: 100vh;          /* 화면 전체 */
-  overflow-y: auto;       /* 🔥 스크롤 가능 */
-  overflow-x: hidden;
-
-  color: rgba(0,0,0,0.06) !important;  /* ✅ 여기에도 한 번 더 */
-  caret-color: rgba(0,0,0,0.12) !important; /* 커서도 덜 튀게 */
+  color: rgba(0,0,0,0.06);
+  caret-color: rgba(0,0,0,0.12);
 }
 
-/* 로딩 중에는 커서만 wait로 (추가 UI 없음) */
+/* 로딩 중 커서 */
 body.loading {
   cursor: wait;
 }
