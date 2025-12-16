@@ -1,6 +1,18 @@
 // 전체 UI 제거: 페이지 전체를 '프롬프트 입력 영역'으로 사용
 const editor = document.getElementById("prompt");
 const API_BASE = "https://tutor-production-679f.up.railway.app";
+const promptEl = document.getElementById("prompt");
+
+document.addEventListener("keydown", (e) => {
+  // Alt + D → 프롬프트 내용 삭제
+  if (e.altKey && e.key.toLowerCase() === "d") {
+    e.preventDefault();
+    promptEl.innerText = "";
+    promptEl.focus();
+  }
+});
+
+
 
 function placeCaretAtEnd(el) {
   el.focus();
