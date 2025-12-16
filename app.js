@@ -1,7 +1,8 @@
+// 전체 UI 제거: 페이지 전체를 '프롬프트 입력 영역'으로 사용
 const editor = document.getElementById("prompt");
-const API_BASE = "https://tutor-production-679f.up.railway.app"; // ✅ 너 Railway 도메인
+const API_BASE = "https://tutor-production-679f.up.railway.app";
 
-function placeCaretAtEnd(el){
+function placeCaretAtEnd(el) {
   el.focus();
   const range = document.createRange();
   range.selectNodeContents(el);
@@ -11,40 +12,41 @@ function placeCaretAtEnd(el){
   sel.addRange(range);
 }
 
-window.addEventListener("load", ()=> editor.focus());
+window.addEventListener("load", () => editor.focus());
 
-// Enter: 전송, Shift+Enter: 줄바꿈
-editor.addEventListener("keydown", (e)=>{
+// Enter: 실행, Shift+Enter: 줄바꿈
+editor.addEventListener("keydown", (e) => {
   if (e.isComposing) return;
-  if (e.key === "Enter" && !e.shiftKey){
+  if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     askAI();
   }
 });
 
-async function askAI(){
+async function askAI() {
   const userPrompt = (editor.innerText || "").trim();
   if (!userPrompt) return;
 
   document.body.classList.add("loading");
 
-  try{
+  try {
     const res = await fetch(`${API_BASE}/summarize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: userPrompt, text: "" }) // text는 호환용
+      body: JSON.stringify({ prompt: userPrompt, text: "" })
     });
 
-    const raw = await res.text();     // 에러 원인 보이게
+    // ✅ 여기 핵심: JSON으로 바로 파싱하지 말고, 먼저 text로 받고 상태코드 체크
+    const raw = await res.text();
     if (!res.ok) throw new Error(`${res.status} ${raw}`);
 
     const data = JSON.parse(raw);
     editor.innerText = data?.result ?? "";
     placeCaretAtEnd(editor);
-  }catch(err){
-    console.error(err);
-    alert(String(err));
-  }finally{
+  } catch (err) {
+    console.error("AI 요청 오류:", err);
+    alert(String(err)); // ✅ 이제 진짜 원인이 뜸
+  } finally {
     document.body.classList.remove("loading");
   }
 }
