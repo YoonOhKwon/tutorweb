@@ -1,29 +1,61 @@
-// 전체 UI 제거: 페이지 전체를 '프롬프트 입력 영역'으로 사용
+// ==============================
+// 기본 요소
+// ==============================
 const editor = document.getElementById("prompt");
 const API_BASE = "https://tutor-production-679f.up.railway.app";
-const promptEl = document.getElementById("prompt");
-const promptEl = document.getElementById("prompt");
 
-// 배율 (0.5 = 절반 속도, 2 = 두 배 속도)
-const SCROLL_MULTIPLIER = 0.4;
+// ==============================
+// 스크롤 설정
+// ==============================
+const SCROLL_MULTIPLIER = 0.4;   // 마우스 휠 감도
+const SCROLL_STEP = 12;          // Alt + ↑↓ 미세 스크롤
+let scrollTimer = null;
 
-promptEl.addEventListener("wheel", (e) => {
-  e.preventDefault();
+// 마우스 휠 스크롤 보정
+editor.addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+    editor.scrollTop += e.deltaY * SCROLL_MULTIPLIER;
+  },
+  { passive: false }
+);
 
-  promptEl.scrollTop += e.deltaY * SCROLL_MULTIPLIER;
-}, { passive: false });
-
+// ==============================
+// 키보드 단축키
+// ==============================
 document.addEventListener("keydown", (e) => {
-  // Alt + D → 프롬프트 내용 삭제
+  // Alt + D → 프롬프트 전체 삭제
   if (e.altKey && e.key.toLowerCase() === "d") {
     e.preventDefault();
-    promptEl.innerText = "";
-    promptEl.focus();
+    editor.innerText = "";
+    editor.focus();
+    return;
+  }
+
+  // Alt + ↑ / ↓ → 미세 스크롤 (연속)
+  if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+    e.preventDefault();
+    if (scrollTimer) return;
+
+    scrollTimer = setInterval(() => {
+      editor.scrollTop += e.key === "ArrowDown"
+        ? SCROLL_STEP
+        : -SCROLL_STEP;
+    }, 30);
   }
 });
 
+document.addEventListener("keyup", () => {
+  if (scrollTimer) {
+    clearInterval(scrollTimer);
+    scrollTimer = null;
+  }
+});
 
-
+// ==============================
+// 커서 제어
+// ==============================
 function placeCaretAtEnd(el) {
   el.focus();
   const range = document.createRange();
@@ -36,15 +68,23 @@ function placeCaretAtEnd(el) {
 
 window.addEventListener("load", () => editor.focus());
 
-// Enter: 실행, Shift+Enter: 줄바꿈
+// ==============================
+// Enter 처리
+// ==============================
+// Enter: 실행
+// Shift + Enter: 줄바꿈
 editor.addEventListener("keydown", (e) => {
   if (e.isComposing) return;
+
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     askAI();
   }
 });
 
+// ==============================
+// AI 요청
+// ==============================
 async function askAI() {
   const userPrompt = (editor.innerText || "").trim();
   if (!userPrompt) return;
@@ -55,19 +95,22 @@ async function askAI() {
     const res = await fetch(`${API_BASE}/summarize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: userPrompt, text: "" })
+      body: JSON.stringify({
+        prompt: userPrompt,
+        text: ""
+      }),
     });
 
-    // ✅ 여기 핵심: JSON으로 바로 파싱하지 말고, 먼저 text로 받고 상태코드 체크
     const raw = await res.text();
     if (!res.ok) throw new Error(`${res.status} ${raw}`);
 
     const data = JSON.parse(raw);
     editor.innerText = data?.result ?? "";
     placeCaretAtEnd(editor);
+
   } catch (err) {
     console.error("AI 요청 오류:", err);
-    alert(String(err)); // ✅ 이제 진짜 원인이 뜸
+    alert(String(err));
   } finally {
     document.body.classList.remove("loading");
   }
