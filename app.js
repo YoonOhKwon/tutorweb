@@ -33,7 +33,7 @@ async function askAI() {
   document.body.classList.add("loading");
 
   try {
-    const res = await fetch("https://hufsmate-production.up.railway.app/summarize", {
+    const res = await fetch("https://tutor-production-679f.up.railway.app/summarize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // 기존 백엔드 스펙 유지: prompt만 사용하고 text는 비워둠
