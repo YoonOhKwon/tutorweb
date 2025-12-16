@@ -11,11 +11,16 @@ body {
   line-height: 1.6;
 }
 
+
 #prompt {
   min-height: calc(100vh - 48px);
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
+
+  height: 100vh;          /* 화면 전체 */
+  overflow-y: auto;       /* 🔥 스크롤 가능 */
+  overflow-x: hidden;
 
   color: rgba(0,0,0,0.06) !important;  /* ✅ 여기에도 한 번 더 */
   caret-color: rgba(0,0,0,0.12) !important; /* 커서도 덜 튀게 */
