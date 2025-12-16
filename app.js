@@ -11,10 +11,15 @@ const SCROLL_MULTIPLIER = 0.4;   // 마우스 휠 감도
 const SCROLL_STEP = 12;          // Alt + ↑↓ 미세 스크롤
 let scrollTimer = null;
 
-// 마우스 휠 스크롤 보정
+// ==============================
+// 마우스 휠 스크롤 (조건부)
+// ==============================
 editor.addEventListener(
   "wheel",
   (e) => {
+    const maxScroll = editor.scrollHeight - editor.clientHeight;
+    if (maxScroll <= 0) return;   // 스크롤 불가능하면 개입 X
+
     e.preventDefault();
     editor.scrollTop += e.deltaY * SCROLL_MULTIPLIER;
   },
@@ -22,9 +27,9 @@ editor.addEventListener(
 );
 
 // ==============================
-// 키보드 단축키
+// 키보드 단축키 (editor에 직접)
 // ==============================
-document.addEventListener("keydown", (e) => {
+editor.addEventListener("keydown", (e) => {
   // Alt + D → 프롬프트 전체 삭제
   if (e.altKey && e.key.toLowerCase() === "d") {
     e.preventDefault();
@@ -39,14 +44,19 @@ document.addEventListener("keydown", (e) => {
     if (scrollTimer) return;
 
     scrollTimer = setInterval(() => {
-      editor.scrollTop += e.key === "ArrowDown"
-        ? SCROLL_STEP
-        : -SCROLL_STEP;
+      editor.scrollTop +=
+        e.key === "ArrowDown" ? SCROLL_STEP : -SCROLL_STEP;
     }, 30);
+  }
+
+  // Enter: 실행 / Shift+Enter: 줄바꿈
+  if (!e.isComposing && e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    askAI();
   }
 });
 
-document.addEventListener("keyup", () => {
+editor.addEventListener("keyup", () => {
   if (scrollTimer) {
     clearInterval(scrollTimer);
     scrollTimer = null;
@@ -69,20 +79,6 @@ function placeCaretAtEnd(el) {
 window.addEventListener("load", () => editor.focus());
 
 // ==============================
-// Enter 처리
-// ==============================
-// Enter: 실행
-// Shift + Enter: 줄바꿈
-editor.addEventListener("keydown", (e) => {
-  if (e.isComposing) return;
-
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    askAI();
-  }
-});
-
-// ==============================
 // AI 요청
 // ==============================
 async function askAI() {
@@ -95,10 +91,7 @@ async function askAI() {
     const res = await fetch(`${API_BASE}/summarize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: userPrompt,
-        text: ""
-      }),
+      body: JSON.stringify({ prompt: userPrompt, text: "" }),
     });
 
     const raw = await res.text();
