@@ -1,7 +1,7 @@
-// 전체 UI 제거: 페이지 전체를 '프롬프트 입력 영역'으로 사용
 const editor = document.getElementById("prompt");
+const API_BASE = "https://tutor-production-679f.up.railway.app"; // ✅ 너 Railway 도메인
 
-function placeCaretAtEnd(el) {
+function placeCaretAtEnd(el){
   el.focus();
   const range = document.createRange();
   range.selectNodeContents(el);
@@ -11,42 +11,40 @@ function placeCaretAtEnd(el) {
   sel.addRange(range);
 }
 
-window.addEventListener("load", () => {
-  // 새로고침/접속 시 커서 바로 들어오게
-  editor.focus();
-});
+window.addEventListener("load", ()=> editor.focus());
 
-// Enter: 실행, Shift+Enter: 줄바꿈
-editor.addEventListener("keydown", (e) => {
-  if (e.isComposing) return; // 한글 조합 중 Enter 오작동 방지
-
-  if (e.key === "Enter" && !e.shiftKey) {
+// Enter: 전송, Shift+Enter: 줄바꿈
+editor.addEventListener("keydown", (e)=>{
+  if (e.isComposing) return;
+  if (e.key === "Enter" && !e.shiftKey){
     e.preventDefault();
     askAI();
   }
 });
 
-async function askAI() {
+async function askAI(){
   const userPrompt = (editor.innerText || "").trim();
   if (!userPrompt) return;
 
   document.body.classList.add("loading");
 
-  try {
-    const res = await fetch("https://tutor-production-679f.up.railway.app/summarize", {
+  try{
+    const res = await fetch(`${API_BASE}/summarize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // 기존 백엔드 스펙 유지: prompt만 사용하고 text는 비워둠
-      body: JSON.stringify({ text: "", prompt: userPrompt })
+      body: JSON.stringify({ prompt: userPrompt, text: "" }) // text는 호환용
     });
 
-    const data = await res.json();
-    editor.innerText = (data && data.result) ? data.result : "";
+    const raw = await res.text();     // 에러 원인 보이게
+    if (!res.ok) throw new Error(`${res.status} ${raw}`);
+
+    const data = JSON.parse(raw);
+    editor.innerText = data?.result ?? "";
     placeCaretAtEnd(editor);
-  } catch (err) {
-    console.error("AI 요청 오류:", err);
-    alert("AI 분석 중 오류 발생");
-  } finally {
+  }catch(err){
+    console.error(err);
+    alert(String(err));
+  }finally{
     document.body.classList.remove("loading");
   }
 }
