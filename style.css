@@ -17,7 +17,7 @@ body {
   white-space: pre-wrap;
   word-break: break-word;
 
-  color: rgba(0,0,0,0.044) !important;  /* ✅ 여기에도 한 번 더 */
+  color: rgba(0,0,0,0.084) !important;  /* ✅ 여기에도 한 번 더 */
   caret-color: rgba(0,0,0,0.12) !important; /* 커서도 덜 튀게 */
 }
 
